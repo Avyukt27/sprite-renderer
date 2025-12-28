@@ -53,9 +53,10 @@ impl ApplicationHandler for App {
 
         self.sprites.clear();
         let sprites = vec![
-            Sprite::new(50, 50, Colour::new(255, 0, 0, 255), 8, 8),
-            Sprite::new(100, 100, Colour::new(0, 255, 0, 255), 16, 16),
-            Sprite::new(150, 150, Colour::new(0, 0, 255, 255), 8, 16),
+            Sprite::new(50, 50, Colour::new(255, 0, 0, 255), 8, 8, true),
+            Sprite::new(100, 100, Colour::new(0, 255, 0, 255), 16, 16, true),
+            Sprite::new(150, 150, Colour::new(0, 0, 255, 255), 8, 16, false),
+            Sprite::new(150, 150, Colour::new(255, 0, 255, 255), 16, 8, true),
         ];
         self.sprites.extend(sprites);
     }
@@ -73,7 +74,9 @@ impl ApplicationHandler for App {
             WindowEvent::RedrawRequested => {
                 self.renderer.clear(Colour::new(0, 0, 0, 255));
                 for sprite in &self.sprites {
-                    self.renderer.draw_sprite(sprite);
+                    if sprite.visible {
+                        self.renderer.draw_sprite(sprite);
+                    }
                 }
 
                 if let Some(pixels) = &mut self.pixels {
