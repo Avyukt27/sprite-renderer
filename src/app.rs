@@ -9,12 +9,15 @@ use winit::window::{Window, WindowId};
 use crate::colour::Colour;
 use crate::renderer::Renderer;
 use crate::sprite::Sprite;
+use crate::tile::Tile;
+use crate::tilemap::Tilemap;
 
 pub struct App {
     window: Option<Arc<Window>>,
     pixels: Option<Pixels<'static>>,
     renderer: Renderer,
     sprites: Vec<Sprite>,
+    background: Tilemap,
 }
 
 impl App {
@@ -24,6 +27,16 @@ impl App {
             pixels: None,
             renderer: Renderer::new(600, 600),
             sprites: Vec::new(),
+            background: Tilemap {
+                width: 75,
+                height: 75,
+                tiles: vec![
+                    Tile {
+                        colour: Colour::new(200, 200, 200, 255)
+                    };
+                    75 * 75
+                ],
+            },
         }
     }
 }
@@ -35,8 +48,8 @@ impl ApplicationHandler for App {
                 Window::default_attributes()
                     .with_title("Sprite Renderer")
                     .with_inner_size(winit::dpi::LogicalSize::new(
-                        self.renderer.width,
-                        self.renderer.height,
+                        self.renderer.width as f64,
+                        self.renderer.height as f64,
                     )),
             )
             .unwrap();
@@ -59,6 +72,10 @@ impl ApplicationHandler for App {
             Sprite::new(150, 150, Colour::new(255, 0, 255, 255), 16, 8, true),
         ];
         self.sprites.extend(sprites);
+
+        if let Some(window) = &self.window {
+            window.request_redraw();
+        }
     }
 
     fn window_event(
@@ -73,10 +90,9 @@ impl ApplicationHandler for App {
             }
             WindowEvent::RedrawRequested => {
                 self.renderer.clear(Colour::new(0, 0, 0, 255));
+                self.renderer.draw_background(&self.background);
                 for sprite in &self.sprites {
-                    if sprite.visible {
-                        self.renderer.draw_sprite(sprite);
-                    }
+                    self.renderer.draw_sprite(sprite);
                 }
 
                 if let Some(pixels) = &mut self.pixels {

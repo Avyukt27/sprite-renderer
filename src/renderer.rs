@@ -1,4 +1,4 @@
-use crate::{colour::Colour, sprite::Sprite};
+use crate::{colour::Colour, sprite::Sprite, tilemap::Tilemap};
 
 pub struct Renderer {
     pub width: u32,
@@ -25,6 +25,10 @@ impl Renderer {
     }
 
     pub fn draw_sprite(&mut self, sprite: &Sprite) {
+        if !sprite.visible {
+            return;
+        }
+
         for sprite_y in 0..sprite.height {
             for sprite_x in 0..sprite.width {
                 let x = sprite.x + sprite_x as i32;
@@ -47,6 +51,36 @@ impl Renderer {
                 self.buffer[index + 1] = sprite.colour.g;
                 self.buffer[index + 2] = sprite.colour.b;
                 self.buffer[index + 3] = sprite.colour.a;
+            }
+        }
+    }
+
+    pub fn draw_background(&mut self, tilemap: &Tilemap) {
+        for tile_y in 0..tilemap.height {
+            for tile_x in 0..tilemap.width {
+                let tile_index = (tile_y * tilemap.width + tile_x) as usize;
+                let tile = &tilemap.tiles[tile_index];
+
+                let pixel_x_start = tile_x * 8;
+                let pixel_y_start = tile_y * 8;
+
+                for y in 0..8 {
+                    for x in 0..8 {
+                        let pixel_x = pixel_x_start + x;
+                        let pixel_y = pixel_y_start + y;
+
+                        if pixel_x >= self.width || pixel_y >= self.height {
+                            continue;
+                        }
+
+                        let index = ((pixel_y * self.width + pixel_x) * 4) as usize;
+
+                        self.buffer[index] = tile.colour.r;
+                        self.buffer[index + 1] = tile.colour.g;
+                        self.buffer[index + 2] = tile.colour.b;
+                        self.buffer[index + 3] = tile.colour.a;
+                    }
+                }
             }
         }
     }

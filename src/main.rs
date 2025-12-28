@@ -4,6 +4,8 @@ mod app;
 mod colour;
 mod renderer;
 mod sprite;
+mod tile;
+mod tilemap;
 
 fn main() {
     let event_loop = EventLoop::new().unwrap();
