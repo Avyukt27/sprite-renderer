@@ -1,6 +1,9 @@
 use winit::event_loop::{ControlFlow, EventLoop};
 
 mod app;
+mod colour;
+mod renderer;
+mod sprite;
 
 fn main() {
     let event_loop = EventLoop::new().unwrap();

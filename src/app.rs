@@ -6,11 +6,15 @@ use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::{Window, WindowId};
 
+use crate::colour::Colour;
+use crate::renderer::Renderer;
+use crate::sprite::Sprite;
+
 pub struct App {
     window: Option<Arc<Window>>,
     pixels: Option<Pixels<'static>>,
-    screen_width: u32,
-    screen_height: u32,
+    renderer: Renderer,
+    sprites: Vec<Sprite>,
 }
 
 impl App {
@@ -18,8 +22,8 @@ impl App {
         Self {
             window: None,
             pixels: None,
-            screen_width: 600,
-            screen_height: 600,
+            renderer: Renderer::new(600, 600),
+            sprites: Vec::new(),
         }
     }
 }
@@ -31,8 +35,8 @@ impl ApplicationHandler for App {
                 Window::default_attributes()
                     .with_title("Sprite Renderer")
                     .with_inner_size(winit::dpi::LogicalSize::new(
-                        self.screen_width,
-                        self.screen_height,
+                        self.renderer.width,
+                        self.renderer.height,
                     )),
             )
             .unwrap();
@@ -40,11 +44,20 @@ impl ApplicationHandler for App {
         let window = Arc::new(window);
 
         let surface_texture =
-            SurfaceTexture::new(self.screen_width, self.screen_height, window.clone());
-        let pixels = Pixels::new(self.screen_width, self.screen_height, surface_texture).unwrap();
+            SurfaceTexture::new(self.renderer.width, self.renderer.height, window.clone());
+        let pixels =
+            Pixels::new(self.renderer.width, self.renderer.height, surface_texture).unwrap();
 
         self.window = Some(window);
         self.pixels = Some(pixels);
+
+        self.sprites.clear();
+        let sprites = vec![
+            Sprite::new(50, 50, Colour::new(255, 0, 0, 255), 8, 8),
+            Sprite::new(100, 100, Colour::new(0, 255, 0, 255), 16, 16),
+            Sprite::new(150, 150, Colour::new(0, 0, 255, 255), 8, 16),
+        ];
+        self.sprites.extend(sprites);
     }
 
     fn window_event(
@@ -58,17 +71,14 @@ impl ApplicationHandler for App {
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
+                self.renderer.clear(Colour::new(0, 0, 0, 255));
+                for sprite in &self.sprites {
+                    self.renderer.draw_sprite(sprite);
+                }
+
                 if let Some(pixels) = &mut self.pixels {
                     let frame = pixels.frame_mut();
-                    for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-                        let x = (i % self.screen_width as usize) as u8;
-                        let y = (i / self.screen_height as usize) as u8;
-
-                        pixel[0] = x; // R
-                        pixel[1] = y; // G
-                        pixel[2] = 0; // B
-                        pixel[3] = 255; // A
-                    }
+                    frame.copy_from_slice(&self.renderer.buffer);
                     pixels.render().unwrap();
                 }
 
