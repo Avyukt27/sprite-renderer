@@ -4,6 +4,8 @@ pub struct Renderer {
     pub width: u32,
     pub height: u32,
     pub buffer: Vec<u8>,
+    pub scroll_x: i32,
+    pub scroll_y: i32,
 }
 
 impl Renderer {
@@ -12,6 +14,8 @@ impl Renderer {
             width,
             height,
             buffer: vec![0; (width * height * 4) as usize],
+            scroll_x: 0,
+            scroll_y: 0,
         }
     }
 
@@ -56,31 +60,25 @@ impl Renderer {
     }
 
     pub fn draw_background(&mut self, tilemap: &Tilemap) {
-        for tile_y in 0..tilemap.height {
-            for tile_x in 0..tilemap.width {
-                let tile_index = (tile_y * tilemap.width + tile_x) as usize;
-                let tile = &tilemap.tiles[tile_index];
+        for screen_y in 0..self.height {
+            for screen_x in 0..self.width {
+                let world_x = screen_x as i32 + self.scroll_x;
+                let world_y = screen_y as i32 + self.scroll_y;
 
-                let pixel_x_start = tile_x * 8;
-                let pixel_y_start = tile_y * 8;
+                let mut tile_x = world_x.div_euclid(8);
+                let mut tile_y = world_y.div_euclid(8);
 
-                for y in 0..8 {
-                    for x in 0..8 {
-                        let pixel_x = pixel_x_start + x;
-                        let pixel_y = pixel_y_start + y;
+                tile_x = tile_x.rem_euclid(tilemap.width as i32);
+                tile_y = tile_y.rem_euclid(tilemap.height as i32);
 
-                        if pixel_x >= self.width || pixel_y >= self.height {
-                            continue;
-                        }
+                let tile = tilemap.tiles[(tile_y as u32 * tilemap.width + tile_x as u32) as usize];
 
-                        let index = ((pixel_y * self.width + pixel_x) * 4) as usize;
+                let index = ((screen_y * self.width + screen_x) * 4) as usize;
 
-                        self.buffer[index] = tile.colour.r;
-                        self.buffer[index + 1] = tile.colour.g;
-                        self.buffer[index + 2] = tile.colour.b;
-                        self.buffer[index + 3] = tile.colour.a;
-                    }
-                }
+                self.buffer[index] = tile.colour.r;
+                self.buffer[index + 1] = tile.colour.g;
+                self.buffer[index + 2] = tile.colour.b;
+                self.buffer[index + 3] = tile.colour.a;
             }
         }
     }

@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use pixels::{Pixels, SurfaceTexture};
 use winit::application::ApplicationHandler;
-use winit::event::WindowEvent;
+use winit::event::{KeyEvent, WindowEvent};
 use winit::event_loop::ActiveEventLoop;
+use winit::keyboard::{Key, NamedKey};
 use winit::window::{Window, WindowId};
 
 use crate::colour::Colour;
@@ -32,7 +33,7 @@ impl App {
                 height: 75,
                 tiles: vec![
                     Tile {
-                        colour: Colour::new(200, 200, 200, 255)
+                        colour: Colour::new(255, 0, 0, 255)
                     };
                     75 * 75
                 ],
@@ -73,6 +74,10 @@ impl ApplicationHandler for App {
         ];
         self.sprites.extend(sprites);
 
+        self.background.tiles[75] = Tile {
+            colour: Colour::new(255, 255, 255, 255),
+        };
+
         if let Some(window) = &self.window {
             window.request_redraw();
         }
@@ -103,6 +108,23 @@ impl ApplicationHandler for App {
 
                 if let Some(window) = &self.window {
                     window.request_redraw();
+                }
+            }
+            WindowEvent::KeyboardInput {
+                event: KeyEvent {
+                    logical_key, state, ..
+                },
+                ..
+            } => {
+                const SCROLL_SPEED: i32 = 1;
+                if state.is_pressed() {
+                    match logical_key {
+                        Key::Named(NamedKey::ArrowUp) => self.renderer.scroll_y -= SCROLL_SPEED,
+                        Key::Named(NamedKey::ArrowDown) => self.renderer.scroll_y += SCROLL_SPEED,
+                        Key::Named(NamedKey::ArrowLeft) => self.renderer.scroll_x -= SCROLL_SPEED,
+                        Key::Named(NamedKey::ArrowRight) => self.renderer.scroll_x += SCROLL_SPEED,
+                        _ => {}
+                    }
                 }
             }
             _ => {}
