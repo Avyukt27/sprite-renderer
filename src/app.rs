@@ -28,16 +28,14 @@ impl App {
             pixels: None,
             renderer: Renderer::new(600, 600),
             sprites: Vec::new(),
-            background: Tilemap {
-                width: 75,
-                height: 75,
-                tiles: vec![
-                    Tile {
-                        colour: Colour::new(255, 0, 0, 255)
-                    };
-                    75 * 75
-                ],
-            },
+            background: Tilemap::new(
+                75,
+                75,
+                8,
+                Tile {
+                    colour: Colour::new(255, 0, 0, 255),
+                },
+            ),
         }
     }
 }

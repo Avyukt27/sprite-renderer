@@ -65,20 +65,13 @@ impl Renderer {
                 let world_x = screen_x as i32 + self.scroll_x;
                 let world_y = screen_y as i32 + self.scroll_y;
 
-                let mut tile_x = world_x.div_euclid(8);
-                let mut tile_y = world_y.div_euclid(8);
-
-                tile_x = tile_x.rem_euclid(tilemap.width as i32);
-                tile_y = tile_y.rem_euclid(tilemap.height as i32);
-
-                let tile = tilemap.tiles[(tile_y as u32 * tilemap.width + tile_x as u32) as usize];
-
-                let index = ((screen_y * self.width + screen_x) * 4) as usize;
-
-                self.buffer[index] = tile.colour.r;
-                self.buffer[index + 1] = tile.colour.g;
-                self.buffer[index + 2] = tile.colour.b;
-                self.buffer[index + 3] = tile.colour.a;
+                if let Some(colour) = tilemap.sample(world_x, world_y) {
+                    let index = ((screen_y * self.width + screen_x) * 4) as usize;
+                    self.buffer[index] = colour.r;
+                    self.buffer[index + 1] = colour.g;
+                    self.buffer[index + 2] = colour.b;
+                    self.buffer[index + 3] = colour.a;
+                }
             }
         }
     }
